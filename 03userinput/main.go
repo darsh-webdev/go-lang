@@ -4,24 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 )
 
 func main() {
-    fmt.Println("Please Rate enter:")
 
-    var reader, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+	welcome := "Welcome to user input"
+	fmt.Println(welcome)
 
-    fmt.Println("You entered:", reader)
+	read := bufio.NewReader(os.Stdin)
+	fmt.Println("Enter rating for this course:")
 
-    var trimmed = strings.TrimSpace(reader) // This will remove the trailing newline character as it connot be directly converted to an integer
-
-    var rating, err = strconv.ParseFloat(trimmed, 64)
-
-    if err != nil {
-        fmt.Println("Error:", err)
-    } else {
-        fmt.Println("Rating:", rating + 1)
-    }
+	// Comma ok || err
+	input, _ := read.ReadString('\n')
+	fmt.Println("Thanks for rating, ", input)
+	fmt.Printf("Type of this rating is: %T \n", input)
 }
