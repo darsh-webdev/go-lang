@@ -11,6 +11,7 @@ func main() {
 	fmt.Println("Handling web requests to local server in Golang")
 
 	PerformGetRequest()
+	PerformPostJsonRequest()
 }
 
 func PerformGetRequest() {
@@ -33,4 +34,30 @@ func PerformGetRequest() {
 
 	fmt.Println("ByteCount is: ", byteCount)
 	fmt.Println("Content is: ", responseString.String())
+}
+
+func PerformPostJsonRequest() {
+	const myUrl = "http://localhost:3000/post"
+
+	// Fake json payload
+	requestBody := strings.NewReader(`
+		{
+			"coursename" : "Golang Masterclass",
+			"price" : 0,
+			"platform" : "learnGo.dev"
+		}
+	`)
+
+	response, err := http.Post(myUrl, "application/json", requestBody)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer response.Body.Close()
+
+	content, _ := io.ReadAll(response.Body)
+
+	fmt.Println("Content for Post request is: ", string(content))
+
 }
