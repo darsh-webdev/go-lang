@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -12,6 +13,7 @@ func main() {
 
 	PerformGetRequest()
 	PerformPostJsonRequest()
+	PerformPostFormRequest()
 }
 
 func PerformGetRequest() {
@@ -60,4 +62,26 @@ func PerformPostJsonRequest() {
 
 	fmt.Println("Content for Post request is: ", string(content))
 
+}
+
+func PerformPostFormRequest() {
+	const myUrl = "http://localhost:3000/postform"
+
+	// Form data
+	data := url.Values{}
+	data.Add("firstname", "Darshan")
+	data.Add("lastname", "Rajput")
+	data.Add("email", "darshan@go.dev")
+
+	response, err := http.PostForm(myUrl, data)
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer response.Body.Close()
+
+	content, _ := io.ReadAll(response.Body)
+
+	fmt.Println("Content for Post Form request is: ", string(content))
 }
