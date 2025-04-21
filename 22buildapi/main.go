@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -65,4 +67,33 @@ func getCourseById(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode("No Course found with given id")
 	return
+}
+
+// add one course
+func addCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Add one course")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Check if body is not empty
+	if r.Body == nil {
+		json.NewEncoder(w).Encode("Body can not to empty")
+	}
+
+	// Handle if JSON is {}
+	var course Course
+	_ = json.NewDecoder(r.Body).Decode(&course)
+	if course.IsEmpty() {
+		json.NewEncoder(w).Encode("JSON data cannot be empty")
+		return
+	}
+
+	// Generate unique ID and convert into string
+	course.CourseId = strconv.Itoa(rand.IntN(100))
+
+	// Append course into courses
+	courses = append(courses, course)
+
+	json.NewEncoder(w).Encode(course)
+	return
+
 }
