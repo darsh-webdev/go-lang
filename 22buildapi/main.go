@@ -97,3 +97,37 @@ func addCourse(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func updateCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Update one course")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Grab courseId from request
+	params := mux.Vars(r)
+
+	// Check if courseId exists and is not empty
+	courseId, err := params["courseId"]
+	if !err || courseId == "" {
+		// Handle the error case
+		json.NewEncoder(w).Encode("CourseId is required")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Loop over courses, match id and update
+	for index, course := range courses {
+		if course.CourseId == courseId {
+			courses = append(courses[:index], courses[index+1:]...)
+			var course Course
+			_ = json.NewDecoder(r.Body).Decode(&course)
+			course.CourseId = courseId
+			courses = append(courses, course)
+			json.NewEncoder(w).Encode(course)
+			return
+		}
+	}
+
+	// If no matching course was found
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode("No course found with ID: " + courseId)
+}
