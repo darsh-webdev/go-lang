@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand/v2"
 	"net/http"
 	"strconv"
@@ -33,17 +34,33 @@ func (c *Course) IsEmpty() bool {
 
 func main() {
 	fmt.Println("Understanding building API's in Golang")
+	r := mux.NewRouter()
+
+	// Seeding
+	courses = append(courses, Course{CourseId: "123", CourseName: "ReactJS", CoursePrice: 299, Author: &Author{Fullname: "Darshan", Website: "learnreact.dev"}})
+	courses = append(courses, Course{CourseId: "101", CourseName: "GoLang", CoursePrice: 199, Author: &Author{Fullname: "Jacob", Website: "learngo.dev"}})
+
+	// Routing
+	r.HandleFunc("/", serveHome).Methods("GET")
+	r.HandleFunc("/courses", getAllCourses).Methods("GET")
+	r.HandleFunc("/course/{courseId}", getCourseById).Methods("GET")
+	r.HandleFunc("/course", addCourse).Methods("POST")
+	r.HandleFunc("/course/{courseId}", updateCourse).Methods("PUT")
+	r.HandleFunc("/course/{courseId}", deleteCourse).Methods("DELETE")
+
+	// Listen to Port
+	log.Fatal(http.ListenAndServe(":4000", r))
 }
 
 // Controllers - file
 
 // serve home route
-func serveHome(w http.ResponseWriter, r *http.Response) {
+func serveHome(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1>Welcome to implementing API in Go</h1>"))
 }
 
 // get all courses route
-func getAllCourses(w http.ResponseWriter, r *http.Response) {
+func getAllCourses(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Get all courses")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(courses)
@@ -59,7 +76,7 @@ func getCourseById(w http.ResponseWriter, r *http.Request) {
 
 	// loop through courses, find matching id and return the response
 	for _, course := range courses {
-		if course.CourseId == params["id"] {
+		if course.CourseId == params["courseId"] {
 			json.NewEncoder(w).Encode(course)
 			return
 		}
@@ -87,17 +104,26 @@ func addCourse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if course with same course name already exists
+	for _, coursesData := range courses {
+		if course.CourseName == coursesData.CourseName {
+			json.NewEncoder(w).Encode("Course with same title already exists")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
 	// Generate unique ID and convert into string
 	course.CourseId = strconv.Itoa(rand.IntN(100))
 
 	// Append course into courses
 	courses = append(courses, course)
-
 	json.NewEncoder(w).Encode(course)
 	return
 
 }
 
+// Update one course
 func updateCourse(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Update one course")
 	w.Header().Set("Content-Type", "application/json")
@@ -132,6 +158,7 @@ func updateCourse(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("No course found with ID: " + courseId)
 }
 
+// Delete one course
 func deleteCourse(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Delete one course")
 	w.Header().Set("Content-Type", "application/json")
@@ -153,7 +180,7 @@ func deleteCourse(w http.ResponseWriter, r *http.Request) {
 		if course.CourseId == courseId {
 			courses = append(courses[:index], courses[index+1:]...)
 			json.NewEncoder(w).Encode("Course deleted successfully")
-			break
+			return
 		}
 	}
 
