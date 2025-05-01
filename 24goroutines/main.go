@@ -7,7 +7,11 @@ import (
 	"sync"
 )
 
+var signals = []string{"test"}
+
 var wg sync.WaitGroup // usually these are pointers
+
+var mut sync.Mutex // usually pointers
 
 func main() {
 	fmt.Println("Understanding Goroutines in Golang")
@@ -21,11 +25,12 @@ func main() {
 	}
 
 	for _, web := range websiteList {
-		go getStatusCode(web)
 		wg.Add(1)
+		go getStatusCode(web)
 	}
 
 	wg.Wait() // Always at the end of the main function
+	fmt.Println(signals)
 }
 
 func greeter(s string) {
@@ -41,6 +46,10 @@ func getStatusCode(endpoint string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	mut.Lock()
+	signals = append(signals, endpoint)
+	mut.Unlock()
 
 	fmt.Printf("%d status code for %s\n", result.StatusCode, endpoint)
 }
